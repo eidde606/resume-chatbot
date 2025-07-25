@@ -3,6 +3,32 @@ from openai import OpenAI
 from pypdf import PdfReader
 import gradio as gr
 import os
+from fastapi import FastAPI
+from pydantic import BaseModel
+import json
+import smtplib
+from email.mime.text import MIMEText
+
+
+app = FastAPI()
+
+
+class Booking(BaseModel):
+    name: str
+    email: str
+    datetime: str
+    reason: str
+
+
+@app.post("/schedule")
+async def schedule_meeting(data: Booking):
+    print("📬 New Meeting Request:")
+    print(f"Name: {data.name}")
+    print(f"Email: {data.email}")
+    print(f"Date/Time: {data.datetime}")
+    print(f"Reason: {data.reason}")
+    return {"success": True, "message": "Meeting scheduled successfully"}
+
 
 load_dotenv()
 openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -59,11 +85,58 @@ def chat(message, history):
     reply = response.choices[0].message.content
 
     # Check for scheduling intent
-    if '{"action": "schedule"' in reply:
-        print("\n✅ SCHEDULING REQUEST DETECTED!")
-        print(reply)  # We can later replace this with saving or emailing the details
+    if '"action": "schedule_meeting"' in reply:
+        print("\n📆 SCHEDULING REQUEST DETECTED")
+    print(reply)
+
+    try:
+        import json
+
+        payload = json.loads(reply.split("\n")[-1])
+        name = payload["name"]
+        email = payload["email"]
+        datetime = payload["datetime"]
+        reason = payload["reason"]
+
+        send_email_to_client(email, name, datetime, reason)
+
+    except Exception as e:
+        print("❌ Error sending email:", e)
 
     return reply
+
+
+def send_email_to_client(to_email, name, datetime, reason):
+    user = os.getenv("GMAIL_USER")
+    password = os.getenv("GMAIL_PASS")
+
+    subject = "Your Meeting with Eddie Nazario"
+    body = f"""
+    Hi {name},
+
+    This is a confirmation that your meeting with Eddie Nazario has been scheduled.
+
+    📅 Date and Time: {datetime}
+    💬 Reason: {reason}
+
+    If you have any questions before the meeting, feel free to reply to this email.
+
+    Regards,
+    Eddie Nazario
+    """
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = user
+    msg["To"] = to_email
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(user, password)
+            server.sendmail(user, to_email, msg.as_string())
+        print("✅ Email sent to client")
+    except Exception as e:
+        print("❌ Error sending email:", e)
 
 
 gr.ChatInterface(chat, type="messages").launch(
