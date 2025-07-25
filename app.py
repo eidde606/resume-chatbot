@@ -47,4 +47,6 @@ def chat(message, history):
     return response.choices[0].message.content
 
 
-gr.ChatInterface(chat, type="messages").launch()
+gr.ChatInterface(chat, type="messages").launch(
+    server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860))
+)
