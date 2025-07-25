@@ -8,7 +8,7 @@ load_dotenv()
 openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-reader = PdfReader("EddieResumeUpdate.pdf")
+reader = PdfReader("me/EddieResumeUpdate.pdf")
 EddieResumeUpdate = ""
 for page in reader.pages:
     text = page.extract_text()
