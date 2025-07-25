@@ -27,7 +27,7 @@ particularly questions related to {name}'s career, background, skills and experi
 Your responsibility is to represent {name} for interactions on the website as faithfully as possible. \
 You are given a summary of {name}'s background and LinkedIn profile which you can use to answer questions. \
 Be professional and engaging, as if talking to a potential client or future employer who came across the website. \
-If you don't know the answer, say so."
+If you don't know the answer, say so and if client or potential employer ask to contact you provide them with email eiddenazario@gmail.com and cel number 804-528-7612."
 
 system_prompt += (
     f"\n\n## Summary:\n{EddieResumeUpdate}\n\n## Resume:\n{EddieResumeUpdate}\n\n"
