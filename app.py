@@ -82,28 +82,39 @@ def chat(message, history):
         + [{"role": "user", "content": message}]
     )
     response = openai.chat.completions.create(model="gpt-4o-mini", messages=messages)
-    reply = response.choices[0].message.content
+    raw_reply = response.choices[0].message.content
 
     # Check for scheduling intent
-    if '"action": "schedule_meeting"' in reply:
+    if '"action": "schedule_meeting"' in raw_reply:
         print("\n📆 SCHEDULING REQUEST DETECTED")
-    print(reply)
+        print(raw_reply)
 
-    try:
-        import json
+        try:
+            payload = json.loads(raw_reply.split("\n")[-1])
+            name = payload["name"]
+            email = payload["email"]
+            datetime = payload["datetime"]
+            reason = payload["reason"]
 
-        payload = json.loads(reply.split("\n")[-1])
-        name = payload["name"]
-        email = payload["email"]
-        datetime = payload["datetime"]
-        reason = payload["reason"]
+            send_email_to_client(email, name, datetime, reason)
+            send_email_to_me(name, email, datetime, reason)
 
-        send_email_to_client(email, name, datetime, reason)
+            # Friendly message for the user instead of raw JSON
+            return (
+                f"✅ Your meeting has been scheduled!\n\n"
+                f"👤 Name: {name}\n"
+                f"📧 Email: {email}\n"
+                f"🗓️ Date/Time: {datetime}\n"
+                f"💬 Reason: {reason}\n\n"
+                "I'll see you then!"
+            )
 
-    except Exception as e:
-        print("❌ Error sending email:", e)
+        except Exception as e:
+            print("❌ Error handling schedule request:", e)
+            return "Oops! Something went wrong when trying to schedule the meeting."
 
-    return reply
+    # Fallback: just return the model's reply
+    return raw_reply
 
 
 def send_email_to_client(to_email, name, datetime, reason):
@@ -116,7 +127,7 @@ def send_email_to_client(to_email, name, datetime, reason):
 
     This is a confirmation that your meeting with Eddie Nazario has been scheduled.
 
-    📅 Date and Time: {datetime}
+    📅 Date and Time: {datetime}\n
     💬 Reason: {reason}
 
     If you have any questions before the meeting, feel free to reply to this email.
@@ -137,6 +148,36 @@ def send_email_to_client(to_email, name, datetime, reason):
         print("✅ Email sent to client")
     except Exception as e:
         print("❌ Error sending email:", e)
+
+
+def send_email_to_me(name, email, datetime, reason):
+    user = os.getenv("GMAIL_USER")
+    password = os.getenv("GMAIL_PASS")
+
+    subject = f"📅 New Meeting Scheduled with {name}"
+    body = f"""
+    You have a new meeting scheduled via NazborgAI.
+
+    👤 Name: {name}
+    📧 Email: {email}
+    🗓️ Date/Time: {datetime}
+    💬 Reason: {reason}
+
+    Make sure to review the details before the meeting.
+    """
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = user
+    msg["To"] = user  # Sending to yourself
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(user, password)
+            server.sendmail(user, user, msg.as_string())
+        print("✅ Notification email sent to Eddie")
+    except Exception as e:
+        print("❌ Error sending notification email to Eddie:", e)
 
 
 gr.ChatInterface(chat, type="messages").launch(
