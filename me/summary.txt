@@ -1,0 +1,5 @@
+Eddie Nazario is a Junior Front-End Developer based in Hopewell, VA, with a strong focus on React, JavaScript, and real-world problem solving. After earning his Associate of Applied Science in Information Technology and completing certifications in React development from Meta, Eddie transitioned from a decade-long career as a USPS mail carrier to full-time web development.
+
+He has built and deployed multiple web applications, including a bilingual AI-powered Messenger chatbot for his wife's entertainment business, which handles client bookings using natural conversation in English and Spanish. Eddie is also actively exploring agentic AI development and automation tools to create smarter, more efficient digital experiences.
+
+Fluent in both English and Spanish, Eddie is a self-driven and adaptable developer who thrives on hands-on learning, clean UI design, and creating practical tools that solve real problems. He’s passionate about continuous growth and currently expanding his skills in Python, AI orchestration, and full-stack workflows.
