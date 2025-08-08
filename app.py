@@ -81,7 +81,7 @@ def chat(message, history):
         + history
         + [{"role": "user", "content": message}]
     )
-    response = openai.chat.completions.create(model="gpt-4o-mini", messages=messages)
+    response = openai.chat.completions.create(model="gpt-5", messages=messages)
     raw_reply = response.choices[0].message.content
 
     # Check for scheduling intent
