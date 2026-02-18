@@ -34,16 +34,16 @@ load_dotenv()
 openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-reader = PdfReader("me/EddieResumeUpdate.pdf")
-EddieResumeUpdate = ""
+reader = PdfReader("me/SoftwareEngineer1.pdf")
+SoftwareEngineer1 = ""
 for page in reader.pages:
     text = page.extract_text()
     if text:
-        EddieResumeUpdate += text
+        SoftwareEngineer1 += text
 
-        EddieResumeUpdate = EddieResumeUpdate.strip()
+        SoftwareEngineer1 = SoftwareEngineer1.strip()
 
-        print(EddieResumeUpdate)
+        print(SoftwareEngineer1)
 
 
 name = "Eddie"
@@ -57,7 +57,7 @@ If you don't know the answer, say so. If a client or potential employer asks to 
 provide them with the email eiddenazario@gmail.com and cell number 804-528-7612."
 
 system_prompt += (
-    f"\n\n## Summary:\n{EddieResumeUpdate}\n\n## Resume:\n{EddieResumeUpdate}\n\n"
+    f"\n\n## Summary:\n{SoftwareEngineer1}\n\n## Resume:\n{SoftwareEngineer1}\n\n"
 )
 
 system_prompt += f"With this context, please chat with the user, always staying in character as {name}."
