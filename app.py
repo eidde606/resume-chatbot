@@ -76,21 +76,26 @@ system_prompt += (
 
 
 def chat(message, history):
-    messages = (
-        [{"role": "system", "content": system_prompt}]
-        + history
-        + [{"role": "user", "content": message}]
-    )
+    # history is list[tuple[str, str]] like [("hi","hello"), ...]
+    messages = [{"role": "system", "content": system_prompt}]
+
+    for user_msg, assistant_msg in history:
+        messages.append({"role": "user", "content": user_msg})
+        messages.append({"role": "assistant", "content": assistant_msg})
+
+    messages.append({"role": "user", "content": message})
+
     response = openai.chat.completions.create(model="gpt-5", messages=messages)
     raw_reply = response.choices[0].message.content
 
-    # Check for scheduling intent
     if '"action": "schedule_meeting"' in raw_reply:
-        print("\n📆 SCHEDULING REQUEST DETECTED")
-        print(raw_reply)
-
         try:
-            payload = json.loads(raw_reply.split("\n")[-1])
+            # safer: try parsing the whole reply as JSON first, else last line
+            try:
+                payload = json.loads(raw_reply)
+            except Exception:
+                payload = json.loads(raw_reply.split("\n")[-1])
+
             name = payload["name"]
             email = payload["email"]
             datetime = payload["datetime"]
@@ -99,7 +104,6 @@ def chat(message, history):
             send_email_to_client(email, name, datetime, reason)
             send_email_to_me(name, email, datetime, reason)
 
-            # Friendly message for the user instead of raw JSON
             return (
                 f"✅ Your meeting has been scheduled!\n\n"
                 f"👤 Name: {name}\n"
@@ -108,13 +112,12 @@ def chat(message, history):
                 f"💬 Reason: {reason}\n\n"
                 "I'll see you then!"
             )
-
         except Exception as e:
             print("❌ Error handling schedule request:", e)
             return "Oops! Something went wrong when trying to schedule the meeting."
 
-    # Fallback: just return the model's reply
     return raw_reply
+
 
 
 def send_email_to_client(to_email, name, datetime, reason):
@@ -180,6 +183,8 @@ def send_email_to_me(name, email, datetime, reason):
         print("❌ Error sending notification email to Eddie:", e)
 
 
-gr.ChatInterface(chat, type="messages").launch(
-    server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860))
+gr.ChatInterface(chat).launch(
+    server_name="0.0.0.0",
+    server_port=int(os.environ.get("PORT", 7860))
 )
+
