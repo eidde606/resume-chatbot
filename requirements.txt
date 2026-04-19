@@ -2,3 +2,4 @@ openai
 pypdf
 python-dotenv
 gradio==6.6.0
+email-validator
