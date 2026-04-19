@@ -263,33 +263,28 @@ def try_parse_schedule_payload(raw_reply: str) -> Optional[Booking]:
         return None
 
 
-def build_messages(message: str, history: List[Tuple[str, str]]) -> list:
+def build_messages(message, history):
     messages = [{"role": "system", "content": system_prompt}]
 
-    for user_msg, assistant_msg in history:
-        messages.append({"role": "user", "content": user_msg})
-        messages.append({"role": "assistant", "content": assistant_msg})
+    for item in history:
+        if isinstance(item, dict):
+            role = item.get("role")
+            content = item.get("content")
 
-    messages.append({"role": "user", "content": message})
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": str(content)})
+
+        elif isinstance(item, (list, tuple)) and len(item) >= 2:
+            user_msg = item[0]
+            assistant_msg = item[1]
+
+            if user_msg:
+                messages.append({"role": "user", "content": str(user_msg)})
+            if assistant_msg:
+                messages.append({"role": "assistant", "content": str(assistant_msg)})
+
+    messages.append({"role": "user", "content": str(message)})
     return messages
-
-
-def get_ai_reply(messages: list) -> str:
-    response = client.chat.completions.create(
-        model="gpt-5",
-        messages=messages
-    )
-
-    content = response.choices[0].message.content
-
-    if isinstance(content, list):
-        text_parts = []
-        for item in content:
-            if isinstance(item, dict) and item.get("type") == "text":
-                text_parts.append(item.get("text", ""))
-        return "".join(text_parts).strip()
-
-    return (content or "").strip()
 
 
 # -----------------------------
