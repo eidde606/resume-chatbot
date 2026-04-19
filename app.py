@@ -290,6 +290,25 @@ def build_messages(message, history):
 # -----------------------------
 # Main chat function
 # -----------------------------
+
+def get_ai_reply(messages):
+    response = client.chat.completions.create(
+        model="gpt-5",
+        messages=messages
+    )
+
+    content = response.choices[0].message.content
+
+    if isinstance(content, list):
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(item.get("text", ""))
+        return "".join(text_parts).strip()
+
+    return (content or "").strip()
+
+
 def chat(message, history):
     try:
         messages = build_messages(message, history)
